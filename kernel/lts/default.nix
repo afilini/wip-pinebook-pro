@@ -11,8 +11,22 @@ let
       inherit sha256;
     });
   };
+  manjaro-linux-pbp = commit: sha256: {
+    name = "linux-pbp-${commit}";
+    patch = (fetchpatch {
+      url = "https://gitlab.manjaro.org/tsys/linux-pinebook-pro/-/commit/${commit}.diff";
+      inherit sha256;
+    });
+  };
 in
 linux_5_10.override({
+  argsOverride = {
+    modDirVersion = "${linux_5_10.version}-NIXOS-ARM";
+  };
+
+  autoModules = false;
+  defconfig = "pinebook_pro_defconfig";
+
   kernelPatches = lib.lists.unique (kernelPatches ++ [
     pkgs.kernelPatches.bridge_stp_helper
     pkgs.kernelPatches.request_key_helper
@@ -24,6 +38,45 @@ linux_5_10.override({
       name = "pinebookpro-config";
       patch = null;
       extraConfig = ''
+        LOCALVERSION -NIXOS-ARM
+
+        DRM_NOUVEAU n
+        DRM_AMDGPU n
+        DRM_RADEON n
+
+        INFINIBAND n
+        XEN n
+        FPGA n
+        XILINX_VCU n
+        FIREWIRE n
+        CAN n
+
+        INPUT_TOUCHSCREEN n
+
+        NET_VENDOR_3COM n
+        NET_VENDOR_CHELSIO n
+        NET_VENDOR_INTEL n
+        NET_VENDOR_AMD n
+        NET_VENDOR_AMAZON n
+        NET_VENDOR_CAVIUM n
+        NET_VENDOR_MARVELL n
+        NET_VENDOR_MELLANOX n
+        NET_VENDOR_NETRONOME n
+        NET_VENDOR_QLOGIC n
+        NET_VENDOR_SFC n
+        NET_VENDOR_SAMSUNG n
+
+        WLAN_VENDOR_INTEL n
+
+        MEDIA_ANALOG_TV_SUPPORT n
+        MEDIA_DIGITAL_TV_SUPPORT n
+
+        AFS_FS n
+        XFS_FS n
+        OCFS2_FS n
+        CEPH_FS n
+        GFS2_FS n
+
         PCIE_ROCKCHIP y
         PCIE_ROCKCHIP_HOST y
         PCIE_DW_PLAT y
@@ -62,6 +115,9 @@ linux_5_10.override({
     (nhp "0024-arm64-dts-rockchip-setup-USB-type-c-port-as-dual-dat.patch"         "0zwwyhryghafga36mgnazn6gk88m2rvs8ng5ykk4hhg9pi5bgzh9")
     (nhp "0026-arm64-dts-rockchip-add-typec-extcon-hack.patch"                     "1kri47nkm6qgsqgkxzgy6iwhpajcx9xwd4rf8dldr6prb9f6iv3p")
     (nhp "pbp-2d-fix.patch"                                                        "1hwd6clk1qnjyd4jl7kjn9pnilijz4brh1p5dnv8jzr2ajx2346j")
+
+    # Get a reasonable defconfig
+    (manjaro-linux-pbp "a96d6f22342042e11f36bd622da3db9711f5f530"                  "07i07kjqk8qml193xl4jv2d58z6ys4j4y18qqlmcbq8hm1dcchix")
   ]);
 })
 //
